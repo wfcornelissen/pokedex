@@ -10,28 +10,20 @@ func TestCleanInput(t *testing.T) {
 		expected []string
 	}{
 		{
-			input:    "    ",
+			input:    "  ",
 			expected: []string{},
 		},
 		{
-			input:    "Hello, World!",
-			expected: []string{"hello,", "world!"},
+			input:    "  hello  ",
+			expected: []string{"hello"},
 		},
 		{
-			input:    "This is a test Sentence",
-			expected: []string{"this", "is", "a", "test", "sentence"},
+			input:    "  hello  world  ",
+			expected: []string{"hello", "world"},
 		},
 		{
-			input:    "    hasleadingspace",
-			expected: []string{"hasleadingspace"},
-		},
-		{
-			input:    "hastrailingspace     ",
-			expected: []string{"hastrailingspace"},
-		},
-		{
-			input:    "      hasbothspace      ",
-			expected: []string{"hasbothspace"},
+			input:    "  HellO  World  ",
+			expected: []string{"hello", "world"},
 		},
 	}
 
@@ -45,10 +37,8 @@ func TestCleanInput(t *testing.T) {
 			word := actual[i]
 			expectedWord := c.expected[i]
 			if word != expectedWord {
-				t.Errorf("%v does not match with %v", word, expectedWord)
-				t.Fail()
+				t.Errorf("cleanInput(%v) == %v, expected %v", c.input, actual, c.expected)
 			}
 		}
-
 	}
 }
