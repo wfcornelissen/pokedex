@@ -1,6 +1,7 @@
 package pokecache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -17,27 +18,33 @@ type cacheEntry struct {
 }
 
 func NewCache(interval time.Duration) *Cache {
-	return &Cache{
+	c := &Cache{
 		Entry:    make(map[string]cacheEntry),
 		interval: interval,
 	}
+	c.reapLoop()
+	return c
 }
 
-func (c *Cache) Add(key string, val []byte) {
+func (c *Cache) Add(key *string, val []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.Entry[key] = cacheEntry{
+	c.Entry[*key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
 	}
 }
 
-func (c *Cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key *string) ([]byte, bool) {
+	if key == nil {
+		return nil, false
+	}
+	
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	entry, exists := c.Entry[key]
+	entry, exists := c.Entry[*key]
 	if exists {
 		return entry.val, true
 	}
@@ -45,5 +52,6 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 }
 
 func (c *Cache) reapLoop() {
-
+	fmt.Println("reapLoop called")
+	if c.Entry.createdAt
 }
