@@ -20,9 +20,9 @@ type cacheEntry struct {
 func NewCache(interval time.Duration) *Cache {
 	c := &Cache{
 		Entry:    make(map[string]cacheEntry),
-		interval: interval,
+		interval: interval * time.Second,
 	}
-	c.reapLoop()
+	go c.reapLoop()
 	return c
 }
 
@@ -40,7 +40,7 @@ func (c *Cache) Get(key *string) ([]byte, bool) {
 	if key == nil {
 		return nil, false
 	}
-	
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -53,5 +53,14 @@ func (c *Cache) Get(key *string) ([]byte, bool) {
 
 func (c *Cache) reapLoop() {
 	fmt.Println("reapLoop called")
-	if c.Entry.createdAt
+	for {
+		c.mu.Lock()
+		for url, entry := range c.Entry {
+			if time.Since(entry.createdAt) > c.interval {
+				delete(c.Entry, url)
+			}
+		}
+		c.mu.Unlock()
+		time.Sleep(c.interval)
+	}
 }
