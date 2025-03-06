@@ -11,16 +11,11 @@ const (
 	apiBaseURL = "https://pokeapi.co/api/v2/location-area/"
 )
 
-// Offset tracks pagination for the API requests
-var LocationResp config
-
-func apiRequest() error {
-	var URL string
-	if LocationResp.Next == "" {
+func apiRequest(URL string) error {
+	if URL == "" {
 		URL = apiBaseURL
-	} else {
-		URL = LocationResp.Next
 	}
+	fmt.Println(URL)
 	resp, err := http.Get(URL)
 	if err != nil {
 		return err
@@ -32,13 +27,13 @@ func apiRequest() error {
 		return err
 	}
 
-	err = json.Unmarshal(body, &LocationResp)
+	err = json.Unmarshal(body, &Config)
 	if err != nil {
 		return err
 	}
-	fmt.Println(LocationResp.Next)
+	fmt.Println(Config.Next)
 	fmt.Println("Location areas:")
-	for _, area := range LocationResp.Results {
+	for _, area := range Config.Results {
 		fmt.Printf("- %s\n", area.Name)
 	}
 	return nil

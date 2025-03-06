@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+var Config config
+
 func startRepl() {
 	reader := bufio.NewScanner(os.Stdin)
 	for {
@@ -23,7 +25,7 @@ func startRepl() {
 		command, exists := getCommands()[commandName]
 
 		if exists {
-			err := command.callback()
+			err := command.callback(&Config)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -44,7 +46,14 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
+}
+
+type config struct {
+	Count    int            `json:"count"`
+	Next     string         `json:"next"`
+	Previous string         `json:"previous"`
+	Results  []LocationArea `json:"results"`
 }
 
 func getCommands() map[string]cliCommand {

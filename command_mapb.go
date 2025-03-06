@@ -1,7 +1,7 @@
 package main
 
-func commandMapb() error {
-	err := apiRequest()
+func commandMapb(config *config) error {
+	err := apiRequest(config.Previous)
 	if err != nil {
 		return err
 	}
