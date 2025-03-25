@@ -15,7 +15,6 @@ func apiRequest(URL string) error {
 	if URL == "" {
 		URL = apiBaseURL
 	}
-	fmt.Println(URL)
 	resp, err := http.Get(URL)
 	if err != nil {
 		return err
@@ -31,8 +30,7 @@ func apiRequest(URL string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(Config.Next)
-	fmt.Println("Location areas:")
+
 	for _, area := range Config.Results {
 		fmt.Printf("- %s\n", area.Name)
 	}
