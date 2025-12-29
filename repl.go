@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/rogpeppe/go-internal/cache"
+	"github.com/wfcornelissen/pokedex/internal"
 )
 
 type cliCommand struct {
@@ -30,6 +31,7 @@ type locationArea struct {
 
 var registry map[string]cliCommand
 var mapCount int
+var cache = internal.NewCache(5 * time.Minute)
 
 func init() {
 	mapCount = 0
@@ -107,10 +109,9 @@ func CommandMap() error {
 		mapCount++
 	}
 	// Check for cache entry
-	_, exists := cache.Entry[fullURL]
+	_, exists := cache.Get(fullURL)
 	if exists {
 		fmt.Println("Cache exists")
-
 	}
 
 	fmt.Printf("Fetching from: %v\n", fullURL)

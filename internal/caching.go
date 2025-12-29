@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type cache struct {
+type Cache struct {
 	entry    map[string]cacheEntry
 	interval time.Duration
 	mutex    *sync.Mutex
@@ -16,7 +16,7 @@ type cacheEntry struct {
 	val       []byte
 }
 
-func (c *cache) Add(key string, val []byte) {
+func (c *Cache) Add(key string, val []byte) {
 	NewEntry := cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
@@ -26,7 +26,7 @@ func (c *cache) Add(key string, val []byte) {
 	c.mutex.Unlock()
 }
 
-func (c *cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -35,36 +35,35 @@ func (c *cache) Get(key string) ([]byte, bool) {
 		return nil, false
 	}
 
-	// Check if entry has expired
-	if time.Since(entry.createdAt) > c.interval {
-		delete(c.entry, key)
-		return nil, false
-	}
-
 	return entry.val, true
 }
 
-func (c *cache) ReapLoop(ticker *time.Ticker) {
-	for range ticker.C {
-		c.mutex.Lock()
-		now := time.Now()
-		for key, entry := range c.entry {
-			if now.Sub(entry.createdAt) > c.interval {
-				delete(c.entry, key)
-			}
-		}
-		c.mutex.Unlock()
+func (c *Cache) ReapLoop(interval time.Duration) {
+	for range interval.C {
+		c.Reap(time.Now().UTC(), interval)
+
 	}
 }
 
-func NewCache(interval time.Duration) *cache {
-	c := &cache{
+func (c *Cache) Reap(now time.Time, last time.Duration) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	for key, val := range c.entry {
+		if val.createdAt.Before(now.Add(-last)) {
+			delete(c.entry, key)
+		}
+	}
+}
+
+func NewCache(interval time.Duration) *Cache {
+	c := &Cache{
 		entry:    make(map[string]cacheEntry),
 		interval: interval,
 		mutex:    &sync.Mutex{},
 	}
-	ticker := time.NewTicker(interval)
-	go c.ReapLoop(ticker)
+
+	go c.ReapLoop(interval)
 
 	return c
 }
