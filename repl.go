@@ -368,6 +368,7 @@ type PokemonResponse struct {
 	} `json:"past_abilities"`
 }
 
+var library map[string]PokemonResponse
 var registry map[string]cliCommand
 var mapCount int
 var cache *internal.Cache
@@ -602,7 +603,9 @@ func CommandCatch(option string) error {
 		if err != nil {
 			return err
 		}
-		CatchPokemon(&result)
+		if CatchPokemon(&result) {
+			library[fullURL] = result
+		}
 		return nil
 	}
 	var result PokemonResponse
@@ -610,13 +613,15 @@ func CommandCatch(option string) error {
 	if err != nil {
 		return err
 	}
-	CatchPokemon(&result)
+	if CatchPokemon(&result) {
+		library[fullURL] = result
+	}
 
 	return nil
 }
 
-func CatchPokemon(poke *PokemonResponse) {
-	fmt.Printf("Throwing a Pokeball at %v\n", poke.Name)
+func CatchPokemon(poke *PokemonResponse) bool {
+	fmt.Printf("Throwing a Pokeball at %v...\n", poke.Name)
 	baseExp := poke.BaseExperience
 	chance := 100 - ((-0.11836734693 * float64(baseExp)) + 102.367346938)
 
@@ -626,7 +631,8 @@ func CatchPokemon(poke *PokemonResponse) {
 
 	if val > chance {
 		fmt.Printf("%v was caught!\n", poke.Name)
-		return
+		return true
 	}
 	fmt.Printf("%v escaped!\n", poke.Name)
+	return false
 }
