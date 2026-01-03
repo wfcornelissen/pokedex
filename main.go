@@ -19,6 +19,6 @@ func main() {
 		}
 		cmd := CleanInput(input)
 		// cmd[0] is the command
-		CheckInput(cmd[0])
+		CheckInput(cmd)
 	}
 }
