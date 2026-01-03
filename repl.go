@@ -376,6 +376,7 @@ var cache *internal.Cache
 func init() {
 	mapCount = 0
 	cache = internal.NewCache(5 * time.Minute)
+	library = make(map[string]PokemonResponse)
 	registry = map[string]cliCommand{
 		"exit": {
 			name:        "exit",
@@ -409,6 +410,16 @@ func init() {
 			name:        "catch",
 			description: `Attempts to catch specified pokemon.`,
 			callback:    CommandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: `Attempts to inspect the details of a specified pokemon.`,
+			callback:    CommandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: `Lists all pokedex entries' names.`,
+			callback:    CommandPokedex,
 		},
 	}
 }
@@ -604,7 +615,7 @@ func CommandCatch(option string) error {
 			return err
 		}
 		if CatchPokemon(&result) {
-			library[fullURL] = result
+			library[result.Name] = result
 		}
 		return nil
 	}
@@ -614,7 +625,7 @@ func CommandCatch(option string) error {
 		return err
 	}
 	if CatchPokemon(&result) {
-		library[fullURL] = result
+		library[result.Name] = result
 	}
 
 	return nil
@@ -635,4 +646,39 @@ func CatchPokemon(poke *PokemonResponse) bool {
 	}
 	fmt.Printf("%v escaped!\n", poke.Name)
 	return false
+}
+
+func CommandInspect(option string) error {
+	fmt.Printf("Searching for %v\n", option)
+	poke, exists := library[option]
+	if !exists {
+		return fmt.Errorf("You have not caught this pokemon yet.")
+	}
+
+	fmt.Printf("Name: %v\n", poke.Name)
+	fmt.Printf("Height: %v\n", poke.Height)
+	fmt.Printf("Weight: %v\n", poke.Weight)
+	fmt.Println("Stats:")
+	for _, stat := range poke.Stats {
+		fmt.Printf(" 	-%v: %v\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, pokeType := range poke.Types {
+		fmt.Printf("	-%v\n", pokeType.Type.Name)
+	}
+
+	return nil
+}
+
+func CommandPokedex(option string) error {
+	if len(library) == 0 {
+		fmt.Println("No pokedex entries... yet!")
+		return fmt.Errorf("No entries in library.")
+	}
+
+	fmt.Println("Your Pokedex:")
+	for _, entry := range library {
+		fmt.Printf("	- %v\n", entry.Name)
+	}
+	return nil
 }
